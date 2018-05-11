@@ -7,14 +7,20 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
+var (
+	overallState = state{}
+)
+
 type state struct {
-	currentTemp float32
-	stableTemp  float32
-	isOpen      bool
+	CurrentTemp float32
+	StableTemp  float32
+	IsOpen      bool
+	StartTime   time.Time
 }
 
 func main() {
@@ -22,6 +28,11 @@ func main() {
 
 	flag.IntVar(&port, "p", 8080, "Port to listen to")
 	flag.Parse()
+	probe := thermoprobe.NewPT100()
+	overallState.CurrentTemp = thermoprobe.Read()
+	overallState.StableTemp = nil
+	overallState.IsOpen = false
+	overallState.CurrentTemp = 0
 
 	// Initiate router, be harsh to
 	// people who can't type URL's
@@ -34,17 +45,28 @@ func main() {
 	}
 
 	router.Handle("GET", "/dummy", dummyHandler)
+	router.Handle("GET", "/current", currentHandler)
 
 	log.Printf("listening on 0.0.0.0:%d", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), router))
 }
 
+func currentHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	stateAsJSON, err := json.Marshal(overallState)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, string(stateAsJSON))
+}
+
 func dummyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Print()
-	dummy := state{
-		currentTemp: rand.Float32()*10 + 10,
-		stableTemp:  rand.Float32()*10 + 10,
-		isOpen:      (rand.Intn(100) < 50),
+	dummy := &state{
+		CurrentTemp: rand.Float32()*10 + 70,
+		StableTemp:  rand.Float32()*10 + 70,
+		IsOpen:      (rand.Intn(100) < 50),
+		StartTime:   time.Now(),
 	}
 	b, err := json.Marshal(dummy)
 	if err != nil {
@@ -52,5 +74,5 @@ func dummyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, string(b))
+	fmt.Fprintf(w, "%s", b)
 }

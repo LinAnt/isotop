@@ -1,6 +1,5 @@
 package thermoprobe
 
-interface thermoprobe {
-
-	func (*)currentTemp()
+type Thermoprobe interface {
+	Read() (float32, error)
 }
