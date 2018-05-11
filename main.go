@@ -28,11 +28,11 @@ func main() {
 
 	flag.IntVar(&port, "p", 8080, "Port to listen to")
 	flag.Parse()
-	probe := thermoprobe.NewPT100()
-	overallState.CurrentTemp = thermoprobe.Read()
-	overallState.StableTemp = nil
-	overallState.IsOpen = false
-	overallState.CurrentTemp = 0
+	// probe := thermoprobe.NewPT100()
+	// overallState.CurrentTemp = thermoprobe.Read()
+	// overallState.StableTemp = nil
+	// overallState.IsOpen = false
+	// overallState.CurrentTemp = 0
 
 	// Initiate router, be harsh to
 	// people who can't type URL's
