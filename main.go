@@ -9,11 +9,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/LinAnt/isotop/relay"
+	"github.com/LinAnt/isotop/thermoprobe"
 	"github.com/julienschmidt/httprouter"
 )
 
 var (
 	overallState = state{}
+	arcON        = false
 )
 
 type state struct {
@@ -28,11 +31,12 @@ func main() {
 
 	flag.IntVar(&port, "p", 8080, "Port to listen to")
 	flag.Parse()
-	// probe := thermoprobe.NewPT100()
-	// overallState.CurrentTemp = thermoprobe.Read()
-	// overallState.StableTemp = nil
-	// overallState.IsOpen = false
-	// overallState.CurrentTemp = 0
+	probe := thermoprobe.NewPT100()
+	relay := relay.NewRelay(0)
+	overallState.CurrentTemp, _ = probe.Read()
+	overallState.StableTemp = -1
+	overallState.IsOpen = relay.IsOpen()
+	overallState.StartTime = time.Now()
 
 	// Initiate router, be harsh to
 	// people who can't type URL's

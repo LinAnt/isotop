@@ -6,8 +6,8 @@ type PT100 struct {
 	Thermoprobe
 }
 
-func NewPT100() *PT100 {
-	p := &PT100{}
+func NewPT100() PT100 {
+	p := PT100{}
 	return p
 }
 
